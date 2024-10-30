@@ -18,6 +18,9 @@ connectDB()
   console.log(error);
   process.exit(1);
 });
+app.get('/',(req,res)=>{
+  res.send("Hello World");
+});
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -29,5 +32,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use('/aura/auth',auth);
+app.use('/auth',auth);
+
 

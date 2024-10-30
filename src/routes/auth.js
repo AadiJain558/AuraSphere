@@ -71,6 +71,13 @@ router.get('/github/callback', passport.authenticate('github', { failureRedirect
         res.redirect('/'); // Redirect to your frontend or a success page
     }
 );
+router.get('/google/callback', passport.authenticate('google', {
+    failureRedirect: '/' // Redirect if authentication fails
+}), (req, res) => {
+    // Successful authentication
+    res.redirect('/'); // Redirect to your home page or another route
+});
+
 
 
 export default router;
