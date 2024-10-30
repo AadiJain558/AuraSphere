@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import protect from "../middleware/auth.js";
 import bcrypt from "bcryptjs";
+
 const router = Router();
 
 router.route("/register").post(async (req, res) => {
@@ -60,24 +61,15 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
 );
 
 // Auth with GitHub
-router.get('/github', passport.authenticate('github', {
-    scope: ['user:email']
-}));
 
-// Callback route for GitHub
+router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+
+
+// GitHub callback route
 router.get('/github/callback', passport.authenticate('github', { failureRedirect: '/' }),
     (req, res) => {
-        // Successful authentication, redirect home.
-        res.redirect('/'); // Redirect to your frontend or a success page
+        res.redirect('/'); // Redirect to a frontend route or success page
     }
 );
-router.get('/google/callback', passport.authenticate('google', {
-    failureRedirect: '/' // Redirect if authentication fails
-}), (req, res) => {
-    // Successful authentication
-    res.redirect('/'); // Redirect to your home page or another route
-});
-
-
 
 export default router;

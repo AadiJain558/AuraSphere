@@ -1,6 +1,6 @@
 import passport from "passport";
-import GoogleStrategy from 'passport-google-oauth20'; // Directly import GoogleStrategy
 import GitHubStrategy from 'passport-github2';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from './models/user.model.js';
 import dotenv from 'dotenv';
 dotenv.config({path: './.env'});
@@ -10,11 +10,16 @@ passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
-    User.findById(id).then((user) => {
+// Deserialize user
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id);
         done(null, user);
-    });
+    } catch (error) {
+        done(error);
+    }
 });
+
 
 // Google OAuth strategy
 passport.use(new GoogleStrategy({
@@ -40,25 +45,31 @@ passport.use(new GoogleStrategy({
     }
 }));
 
+passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: "/auth/github/callback"
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        // Check if emails array is provided and has at least one email
+        const emails = profile.emails || [];
+        const primaryEmail = emails.length > 0 ? emails[0].value : null;
 
-// passport.use(new GitHubStrategy({
-//     clientID: process.env.GITHUB_CLIENT_ID,
-//     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-//     callbackURL: '/auth/github/callback'
-// }, async (accessToken, refreshToken, profile, done) => {
-//     try {
-//         const existingUser = await User.findOne({ email: profile.emails[0].value });
-//         if (existingUser) {
-//             return done(null, existingUser);
-//         }
+        if (!primaryEmail) {
+            console.error('No email associated with this GitHub account');
+            return done(null, false, { message: 'No email found' });
+        }
 
-//         const newUser = await User.create({
-//             username: profile.displayName,
-//             email: profile.emails[0].value,
-//             password: 'dummyPassword'
-//         });
-//         done(null, newUser);
-//     } catch (error) {
-//         done(error);
-//     }
-// }));
+        let user = await User.findOne({ email: primaryEmail });
+        if (user) return done(null, user);
+
+        user = await User.create({
+            username: profile.username,
+            email: primaryEmail,
+            password: 'dummyPassword'
+        });
+        done(null, user);
+    } catch (error) {
+        done(error);
+    }
+}));

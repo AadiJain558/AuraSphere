@@ -1,6 +1,6 @@
 import express from 'express'
 import dotenv from 'dotenv';
-import connectDB from './connect.js';
+import connectDB from './db/connect.js';
 import auth from './routes/auth.js';
 import { mongo } from 'mongoose';
 import session from 'express-session';
@@ -33,5 +33,14 @@ app.use(passport.session());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use('/auth',auth);
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false
+}));
+
+// Initialize Passport
+
+
 
 
