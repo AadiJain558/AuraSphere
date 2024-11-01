@@ -8,7 +8,15 @@ import session from 'express-session';
 import passport from 'passport';
 import './passport.js';
 import courseRouter from "./routes/courserouter.js";
+import gamificationRouter from "./routes/gamificiation.js";
 
+import challengeRoutes from "./routes/challengeRoutes.js";
+import leaderboardRoutes from "./routes/leaderboardRoutes.js";
+
+
+
+
+app.use("/api/gamification", challengeRoutes);
 
 
 dotenv.config({path: './.env'});
@@ -40,6 +48,10 @@ app.use(express.json());
 app.use('/auth',auth);
 app.use('/user',goalrouter);
 app.use('/courses', courseRouter);
+app.use("/api/gamification", challengeRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/gamification", gamificationRouter);
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,

@@ -36,6 +36,19 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    level: {
+        type: Number,
+        default: 1,
+    },
+    rewardHistory: [
+        {
+            reward: String,
+            date: {
+                type: Date,
+                default: Date.now
+            },
+        },
+    ],
     department: {
         type:mongoose.Schema.Types.ObjectId,
         ref:"Dept"
@@ -185,6 +198,25 @@ userSchema.methods.getTimetable = async function () {
 
     return timetable;
 };
+userSchema.methods.awardPoints = async function (points) {
+    this.aurapoints += points;
+
+    // Check for level up (e.g., every 100 points = new level)
+    const levelThreshold = 100;
+    const newLevel = Math.floor(this.aurapoints / levelThreshold) + 1;
+
+    if (newLevel > this.level) {
+        this.level = newLevel;
+    }
+    await this.save();
+};
+
+userSchema.methods.redeemReward = async function (reward) {
+    // Add a record of redeemed reward
+    this.rewardHistory.push({ reward });
+    await this.save();
+};
+
 
 
 export const User = mongoose.model("User", userSchema)
